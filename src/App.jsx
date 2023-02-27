@@ -2,104 +2,100 @@ import './App.css';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css';
-import Highcharts from 'highcharts';
+import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official'
 import { useState,useEffect, useMemo } from 'react';
+
 
 
 
 function App() {
   const urlHighcharts='http://62.216.33.167:21005/api/data?type=price&symbol=CLSK';  
   const urlAgGrid='http://62.216.33.167:21005/api/filings';
-
-  const open=[];
-  const close=[];
-  const high=[];
-  const low=[];
-  const volume=[];
-
+  const data1=[];
   
+const [limit,setLimit]=useState(100);
+
   const [instate,setInstate]=useState({
     loading:false,
     closeData:null,
   })
 
+
+
   useEffect(()=>{
     setInstate({loading:true});
-    fetch(`${urlHighcharts}&$limit=100`)
+    fetch(`${urlHighcharts}&$limit=${limit}`)
     .then(result=>result.json())
     .then(jsonData=>{
       jsonData.data.forEach(item=>{
-        close.push([item.symbol+' '+item.date+toString(),item.close]);
-        open.push([item.symbol+' '+item.date.toString(),item.open]);
-        high.push([item.symbol+' '+item.date.toString(),item.high]);
-        low.push([item.symbol+' '+item.date.toString(),item.low]);
-        volume.push([item.symbol+' '+item.date.toString(),item.volume]);
+        const Ddate=new Date(item.date);
+        console.log(Ddate);
+        data1.push([Ddate,item.open,item.high,item.low,item.close]);
       });
-      setInstate({loading:false,closeData:close,openData:open,highData:high,lowData:low,volumeData:volume})
+      setInstate({loading:false,dData:data1})
     })
-  },[setInstate]);
-  let closeData=instate.closeData;
-  let openData=instate.openData;
-  let highData=instate.highData;
-  let lowData=instate.lowData;
-  let volumeData=instate.volumeData
+  },[limit]);
+  let ddata=instate.dData;
   //console.log(close);
   const options1={
     credits: {
       text: 'My Credits',
-      href: 'https://jenniferfubook.medium.com/jennifer-fus-web-development-publications-1a887e4454af',
+      
     },
-    chart: {
-      type: 'line'
-    },
+   
     title: {
       text: 'Highcharts (open,close,high,low)'
     },
-    series: [
-      { 
-        name:'Close',
-        data: closeData
-        
-      },
-      { 
-        name:'Open',
-        data: openData
-        
-      },
-      { 
-        name:'High',
-        data: highData
-        
-      },
-      { 
-        name:'Low',
-        data: lowData
-        
-      },
+    rangeSelector: {
+      enabled: true,
+      allButtonsEnabled:true,
       
-    ]
-  };
-
-  const options2={
-    credits: {
-      text: 'My Credits',
-      href: 'https://jenniferfubook.medium.com/jennifer-fus-web-development-publications-1a887e4454af',
+      buttonTheme: {
+        width: 50
     },
-    chart: {
-      type: 'line'
-    },
-    title: {
-      text: 'Highchart (volume)'
-    },
+      buttons: [{
+          type: 'millisecond',
+          count: 10,
+          text: '10 mins'
+      },
+      {
+        type:'millisecond',
+        count:60,
+        text:'1 hour'
+      },
+      {
+        type: 'all',
+        count: 1,
+        text: 'All'
+      }],
+      selected: 2,
+      inputEnabled: false
+  },
+  scrollbar:{
+    enabled:true,
+    
+  },
+  navigator:{
+    enabled:true
+  },
     series: [
-      { 
-        name:'Volume',
-        data: volumeData
+      {
+        name:'Data',
+        data:ddata,
+        type:'candlestick',
+        
       }
       
-    ]
+    ],
+    
+    xAxis: {
+        tickPixelInterval: 25
+    },
+   
   };
+
+  
 //console.log(options);
   
 const [rowData,setRowData]=  useState([
@@ -127,13 +123,6 @@ const [columnDefs,setColumnDefs]= useState ([
     {field:'filingStructure', width:2000},
   ]);
 
-
-
-
-
-
-
- 
   const defaultColDef=useMemo(()=>({
     sortable:true,
     filter:true,
@@ -169,21 +158,27 @@ const [columnDefs,setColumnDefs]= useState ([
   },[]);
   return (
     <div>
-    <div className='ag-theme-alpine' style={{height:'90vh'}}>
-      <h2 style={{textAlign:'center'}}>Test of Ag-grid table system</h2>
-     <AgGridReact
-        rowData={rowData}
-        columnDefs={columnDefs}
-        defaultColDef={defaultColDef}
-        rowSelection='multiple'
-        animateRows={true}
-        autoSizeAllColumns={true}
-      />
-    </div>
-    <div>
-    <HighchartsReact highcharts={Highcharts} options={options1}  />
-    <HighchartsReact highcharts={Highcharts} options={options2}  />
-    </div>
+      <div>
+        <button onClick={(e)=>{
+          e.preventDefault();
+          setLimit(limit+20);
+        }}>add +20 positions</button>
+      </div>
+      <div>
+        <HighchartsReact highcharts={Highcharts} options={options1} />
+      </div>
+      <div className='ag-theme-alpine' style={{height:'90vh'}}>
+        <h2 style={{textAlign:'center'}}>Test of Ag-grid table system</h2>
+        <AgGridReact
+          rowData={rowData}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          rowSelection='multiple'
+          animateRows={true}
+          autoSizeAllColumns={true}
+        />
+      </div>
+    
     </div>
   );
 }
