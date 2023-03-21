@@ -176,7 +176,7 @@ const [columnDefs,setColumnDefs]= useState ([
 
             setAgGridData(data1.data);
             setRowData(agGridData.data);
-            continue
+            break
           }else{
             //first if (in comment to fast demonstrate, if what uncommented for full workin with all feathets datas )
             //if(i<5){
