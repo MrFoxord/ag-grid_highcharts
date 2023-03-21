@@ -166,34 +166,43 @@ const [columnDefs,setColumnDefs]= useState ([
             const firstData= await fetch(`${agGridData.url}?$limit=1000`).then(r=>r.json())
             const data1=agGridData;
             data1.data=firstData.data;
+            const parsedData=[]
+              data1.data.forEach(dataOne=>{
+                const arrData=Object.entries(dataOne)
+                arrData.forEach(oneArr=>{if(typeof oneArr[1]==='object'){oneArr[1]=JSON.stringify(oneArr[1])}})
+                parsedData.push(Object.fromEntries(arrData))
+              })
+              data1.data=parsedData
+
             setAgGridData(data1.data);
+            setRowData(agGridData.data);
             continue
           }else{
             //first if (in comment to fast demonstrate, if what uncommented for full workin with all feathets datas )
             //if(i<5){
             if((agGridData.total-i*1000)>1000){
 
-              const insideData=await fetch(`${agGridData.url}?$limit=1000&$skip=${i*1000}`).then(r=>r.json());
-              const data2=agGridData;
-              insideData.data.forEach(dataOne=>{data2.data.push(dataOne)})
-              setAgGridData(data2);
+              // const insideData=await fetch(`${agGridData.url}?$limit=1000&$skip=${i*1000}`).then(r=>r.json());
+              // const data2=agGridData;
+              // insideData.data.forEach(dataOne=>{data2.data.push(dataOne)})
+              // setAgGridData(data2);
               //console.log('step inside')
               continue
             }else{
-              const lastData=await fetch(`${agGridData.url}?$limit=${agGridData.total-(i)*1000}&$skip=${(i)*1000}`).then(r=>r.json())
-              const data3=agGridData;
-              lastData.data.forEach(dataOne=>{data3.data.push(dataOne)})
-              const parsedData=[]
-              data3.data.forEach(dataOne=>{
-                const arrData=Object.entries(dataOne)
-                arrData.forEach(oneArr=>{if(typeof oneArr[1]==='object'){oneArr[1]=JSON.stringify(oneArr[1])}})
-                parsedData.push(Object.fromEntries(arrData))
-              })
-              data3.data=parsedData
+              // const lastData=await fetch(`${agGridData.url}?$limit=${agGridData.total-(i)*1000}&$skip=${(i)*1000}`).then(r=>r.json())
+              // const data3=agGridData;
+              // lastData.data.forEach(dataOne=>{data3.data.push(dataOne)})
+              // const parsedData=[]
+              // data3.data.forEach(dataOne=>{
+              //   const arrData=Object.entries(dataOne)
+              //   arrData.forEach(oneArr=>{if(typeof oneArr[1]==='object'){oneArr[1]=JSON.stringify(oneArr[1])}})
+              //   parsedData.push(Object.fromEntries(arrData))
+              // })
+              // data3.data=parsedData
 
-              setAgGridData(data3);
-              setRowData(agGridData.data);
-               //console.log('last step')
+              // setAgGridData(data3);
+              // setRowData(agGridData.data);
+              //  //console.log('last step')
               
               break
             }
