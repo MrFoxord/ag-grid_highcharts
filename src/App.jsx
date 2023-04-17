@@ -61,7 +61,7 @@ function App() {
         </Toolbar>
       </AppBar>
       
-      <Drawer anchor='left' open={stateMenu} style={{width:'300px'}}>
+      <Drawer anchor='left' open={stateMenu} style={{width:'300px'}} onClose={hideMenu}>
       <Menu size="large"
             edge="start"
             color="inherit"

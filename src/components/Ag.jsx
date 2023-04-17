@@ -9,7 +9,7 @@ import { Stack, TextField, Button } from '@mui/material';
 export default function Ag(){
 
 
-  const [urlAgGrid, setUrlAgGrid] = useState('http://62.216.33.167:21005/api/filings');
+  const [urlAgGrid, setUrlAgGrid] = useState('http://62.216.47.4:21005/api/filings');
 
   const [help,setHelp]=useState(false)
   const [rowData, setRowData] = useState([
@@ -93,7 +93,8 @@ export default function Ag(){
   
   const gridRef=useRef();
   const autoSizeAll=useCallback(()=>{
-    console.log('call of callback')
+    console.log('call of callback',gridRef)
+    
     gridRef.current.columnApi.autoSizeAllColumns(colArray)
   },[])
   
@@ -121,13 +122,14 @@ export default function Ag(){
       },
     ]
   }
+  
   if(help===true){
-    autoSizeAll()
+    autoSizeAll();
   }
-
 
   return (
     <div>
+      <button onClick={()=>{autoSizeAll()}}>press me</button>
     <Stack spacing={0.5} direction='row' style={{ marginTop: '50px', marginLeft: '10px', height: '80px' }}>
         <TextField
           value={agLabel}
@@ -174,7 +176,7 @@ export default function Ag(){
           defaultColDef={defaultColDef}
           rowSelection='multiple'
           animateRows={true} 
-          onGridReady={()=>{setHelp(true)}}          
+          onGridReady={()=>{ setHelp(true) } }          
         />
      
       </div>
