@@ -6,12 +6,14 @@ import { useState, useEffect } from 'react';
 import { Stack, TextField, Button,Alert,IconButton,Collapse } from '@mui/material';
 
 export default function Charts() {
-  const chartUrl='http://62.216.47.4:21005/api/data?type=price&symbol='
+  const chartUrl='http://62.216.47.4:21005/api/tickers_intraday_data?ticker='
+  const chandeChartUrl='http://62.216.47.4:21005/api/tickers_intraday_data'
   const data1 = [];
   const data2 = [];
   const data3 = [];
   const data4 = [];
   const [changedData,setChangedData]=useState([])
+  const [onluOneRender,setOnlyOneRender]=useState(true)
   const [lengthArray,setLengthArray]=useState({
     value1:0,
     value2:0,
@@ -41,20 +43,20 @@ export default function Charts() {
   
   const [tickersArray, setTickersArray] = useState([
     {
-      value: 'CLSK',
-      label: 'CLSK'
+      value: 'AAPL',
+      label: 'AAPL'
     },
     {
-      value: 'NVAX',
-      label: 'NVAX'
+      value: 'MSFT',
+      label: 'MSFT'
     },
     {
-      value: 'EQ',
-      label: 'EQ'
+      value: 'GOOGL',
+      label: 'GOOGL'
     },
     {
-      value: 'CRSP',
-      label: 'CRSP'
+      value: 'AMZN',
+      label: 'AMZN'
     }])
 
 
@@ -89,12 +91,17 @@ export default function Charts() {
       buttons: [{
         type: 'millisecond',
         count: 10,
-        text: '10 mins'
+        text: '10 points'
       },
       {
         type: 'millisecond',
-        count: 60,
-        text: '1 hour'
+        count: 50,
+        text: '50 points'
+      },
+      {
+        type: 'millisecond',
+        count: 100,
+        text: '100 points'
       },
       {
         type: 'all',
@@ -309,74 +316,175 @@ export default function Charts() {
   };
 
   // Re-render of highchart
-  useEffect(() => {
-    setInstate({ loading: true });
-    fetch(chartUrl+`CLSK`)
+  useEffect(() => {if(setOnlyOneRender){
+    setOnlyOneRender(false)
+    console.log('first render',chartUrl+`AAPL`);
+    fetch(chartUrl+`AAPL`)
       .then(result => result.json())
       .then(jsonData => {
-        //console.log('done',jsonData)
+        
+        const total=jsonData.total;
+        console.log('total',total)
         const dataLength=lengthArray
-        console.log('LENGTH',jsonData.data.length);
-        dataLength.value1=jsonData.data.length;
-        jsonData.data.forEach(item => {
-          const Ddate = new Date(item.date);
-
-          data1.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
-        });
-        //console.log('done 2',data1)
-        setInstate({ loading: false, dData: data1 })
+        dataLength.value1=total
+        setLengthArray(dataLength)
+        const newData1=[]
+        for(let i=0;i<1;i++){
+          if(i===0){
+            console.log('first fetch')
+            console.log(`${chartUrl}AAPL&$limit=1000`)
+            fetch(`${chartUrl}AAPL&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                //console.log('fetched',jsonResult.data)
+                jsonResult.data.forEach(oneResult=>{
+                  const Ddate = new Date((oneResult.timestamp)*1000);
+                  //console.log('date',Ddate)
+                  newData1.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                  
+                })
+                setInstate({ loading: false, dData: newData1 })
+                // console.log('SEND FIRST DATA',data1)
+              })
+          }
+          if((i>0)&&(((total-(i*1000))<1000))){
+            console.log('step number',i+1)
+            fetch(`${chartUrl}AAPL&$skip=${i*1000}&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                jsonResult.data.forEach(oneResult=>{
+                const Ddate = new Date((oneResult.timestamp)*1000);
+                
+                newData1.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                
+                })
+                console.log('SEND SOME DATA')
+                setInstate({ loading: false, dData: newData1 })
+              })
+          }
+          if((total-(i*1000))<1000){
+            fetch(`${chartUrl}AAPL&$skip=${i*1000}&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                jsonResult.data.forEach(oneResult=>{
+                const Ddate = new Date((oneResult.timestamp)*1000);
+                
+                newData1.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                })
+                console.log('SEND FINAL DATA')
+            //     console.log('last circle')
+            // console.log('length',data1.length)
+            // console.log('data',data1)
+             setInstate({ loading: false, dData: newData1 })
+              })
+            
+          }
+          
+        }
+        
       })
 
-    fetch(chartUrl+'NVAX')
+    fetch(chartUrl+'MSFT')
       .then(result => result.json())
       .then(jsonData => {
+        const total=jsonData.total;
         const dataLength=lengthArray
-        console.log('LENGTH',jsonData.data.length);
-        dataLength.value1=jsonData.data.length;
+        dataLength.value2=total
+        setLengthArray(dataLength)
 
-        //console.log('done',jsonData)
-        jsonData.data.forEach(item => {
-          const Ddate = new Date(item.date);
-
-          data2.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
-        });
-        //console.log('done 2',data1)
+        for(let i=0;i<(total/1000);i++){
+          if(i===0){
+            fetch(`${chartUrl}MSFT&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                jsonResult.data.forEach(oneResult=>{
+                  const Ddate = new Date((oneResult.timestamp)*1000);
+                  data2.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                })
+              })
+          }
+          if(i>0){
+            fetch(`${chartUrl}MSFT&$skip=${i*1000}&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                jsonResult.data.forEach(oneResult=>{
+                const Ddate = new Date((oneResult.timestamp)*1000);
+                data2.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                })
+              })
+          }
+        }
         setInstate2({ loading: false, dData: data2 })
       })
 
-    fetch(chartUrl+`EQ`)
+    fetch(chartUrl+`GOOGL`)
       .then(result => result.json())
       .then(jsonData => {
+        const total=jsonData.total;
         const dataLength=lengthArray
-        console.log('LENGTH',jsonData.data.length);
-        dataLength.value1=jsonData.data.length;
-        //console.log('done',jsonData)
-        jsonData.data.forEach(item => {
-          const Ddate = new Date(item.date);
+        dataLength.value3=total
+        setLengthArray(dataLength)
 
-          data3.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
-        });
-        //console.log('done 2',data1)
+        for(let i=0;i<(total/1000);i++){
+          if(i===0){
+            fetch(`${chartUrl}GOOGL&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                jsonResult.data.forEach(oneResult=>{
+                  const Ddate = new Date((oneResult.timestamp)*1000);
+                  data3.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                })
+              })
+          }
+          if(i>0){
+            fetch(`${chartUrl}GOOGL&$skip=${i*1000}&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                jsonResult.data.forEach(oneResult=>{
+                const Ddate = new Date((oneResult.timestamp)*1000);
+                data3.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                })
+              })
+          }
+        }
         setInstate3({ loading: false, dData: data3 })
       })
 
-    fetch(chartUrl+`CRSP`)
+    fetch(chartUrl+`AMZN`)
       .then(result => result.json())
       .then(jsonData => {
+        const total=jsonData.total;
         const dataLength=lengthArray
-        console.log('LENGTH',jsonData.data.length);
-        dataLength.value1=jsonData.data.length;
-        //console.log('done',jsonData)
-        jsonData.data.forEach(item => {
-          const Ddate = new Date(item.date);
+        dataLength.value4=total
+        setLengthArray(dataLength)
 
-          data4.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
-        });
+        for(let i=0;i<(total/1000);i++){
+          if(i===0){
+            fetch(`${chartUrl}AMZN&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                jsonResult.data.forEach(oneResult=>{
+                  const Ddate = new Date((oneResult.timestamp)*1000);
+                  data4.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                })
+              })
+          }
+          if(i>0){
+            fetch(`${chartUrl}AMZN&$skip=${i*1000}&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                jsonResult.data.forEach(oneResult=>{
+                const Ddate = new Date((oneResult.timestamp)*1000);
+                data4.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                })
+              })
+          }
+        }
         //console.log('done 2',data1)
         setInstate4({ loading: false, dData: data4 })
       })
 
-  }, []);
+  }}, []);
 
   const changeTicker = (event) => {
      console.log('change to', event)
@@ -413,16 +521,38 @@ export default function Charts() {
 
         if(result.data.length>0){
         const ourData=[]
-        result.data.forEach(oneData=>{
-          ourData.push({x:new Date(oneData.date), open: oneData.open, high: oneData.high, low: oneData.low, close: oneData.close})
-        })
+        const total=result.total
+        
+        for(let i=0;i<(total/1000);i++){
+          if(i===0){
+            fetch(`${askedUrl}&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                jsonResult.data.forEach(oneResult=>{
+                  const Ddate = new Date((oneResult.timestamp)*1000);
+                  ourData.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                })
+              })
+          }
+          if(i>0){
+            fetch(`${askedUrl}&$skip=${i*1000}&$limit=1000`)
+              .then(result=>result.json())
+              .then(jsonResult=>{
+                jsonResult.data.forEach(oneResult=>{
+                const Ddate = new Date((oneResult.timestamp)*1000);
+                ourData.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                })
+              })
+          }
+        }
+
         console.log('instate',instate);
-        setChangedData(result.data);  
+        setChangedData(ourData);  
 
         console.log('context',dialContext)
       switch (dialContext) {
         case 1:
-          if(lengthArray.value1===result.data.length){
+          if(lengthArray.value1===total){
             ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
             console.log('proc equal length', ourData)
           }
@@ -431,12 +561,12 @@ export default function Charts() {
           newLength1.value1=ourData.length;
           firstState.dData=ourData;
           setLengthArray(newLength1);
-          setInstate(firstState);
+          //setInstate(firstState);
           
           break
   
         case 2:
-          if(lengthArray.value2===result.data.length){
+          if(lengthArray.value2===result.total){
             ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
             console.log('proc equal length', ourData)
           }
@@ -449,7 +579,7 @@ export default function Charts() {
           break
   
         case 3:
-          if(lengthArray.value3===result.data.length){
+          if(lengthArray.value3===result.total){
             ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
             console.log('proc equal length', ourData)
           }
@@ -462,7 +592,7 @@ export default function Charts() {
           break
   
         case 4:
-          if(lengthArray.value4===result.data.length){
+          if(lengthArray.value4===result.total){
             ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
             console.log('proc equal length', ourData)
           }
@@ -498,6 +628,9 @@ export default function Charts() {
 
    
   }
+  useEffect(()=>{
+    console.log('instate 1 ',instate)
+  },[instate])
   return (
     <div>
       <h2>Charts</h2>
