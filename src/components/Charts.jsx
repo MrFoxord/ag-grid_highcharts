@@ -86,21 +86,21 @@ export default function Charts() {
       allButtonsEnabled: true,
 
       buttonTheme: {
-        width: 50
+        width: 200
       },
       buttons: [{
         type: 'millisecond',
-        count: 10,
+        count: 3600000,
         text: '10 points'
       },
       {
         type: 'millisecond',
-        count: 50,
+        count: 86400000,
         text: '50 points'
       },
       {
         type: 'millisecond',
-        count: 100,
+        count: 31536000000,
         text: '100 points'
       },
       {
@@ -108,8 +108,8 @@ export default function Charts() {
         count: 1,
         text: 'All'
       }],
-      selected: 2,
-      inputEnabled: false
+      selected: 10,
+      inputEnabled: true
     },
     scrollbar: {
       enabled: true,
@@ -118,21 +118,28 @@ export default function Charts() {
     navigator: {
       enabled: true
     },
+    
+    
     series: [
       {
         name: 'Data',
         data: instate.dData,
         type: 'candlestick',
-
-      }
+      cropThreshold: 1000000
+      },
+      
 
     ],
 
     xAxis: {
-      tickPixelInterval: 10,
-      visible: false
+      tickPixelInterval: 10000,
+      visible: false,
+      ordinal:false,
+      type:'datetime'
+      
     },
 
+    
   };
   const options2 = {
     chart: {
@@ -329,6 +336,7 @@ export default function Charts() {
         dataLength.value1=total
         setLengthArray(dataLength)
         const newData1=[]
+        const newSecData=[]
         for(let i=0;i<1;i++){
           if(i===0){
             console.log('first fetch')
@@ -336,14 +344,14 @@ export default function Charts() {
             fetch(`${chartUrl}AAPL&$limit=1000`)
               .then(result=>result.json())
               .then(jsonResult=>{
-                //console.log('fetched',jsonResult.data)
+                console.log('fetched',jsonResult.data)
                 jsonResult.data.forEach(oneResult=>{
                   const Ddate = new Date((oneResult.timestamp)*1000);
                   //console.log('date',Ddate)
-                  newData1.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                  
+                  newData1.push({ x: (oneResult.timestamp)*1000, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+                  newSecData.push({x:(oneResult.timestamp)*1000, value:oneResult.value})
                 })
-                setInstate({ loading: false, dData: newData1 })
+                setInstate({ loading: false, dData: newData1 ,aData:newSecData});
                 // console.log('SEND FIRST DATA',data1)
               })
           }
