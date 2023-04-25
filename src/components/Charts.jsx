@@ -22,22 +22,20 @@ export default function Charts() {
   })
   const [instate, setInstate] = useState({
     loading: false,
-    closeData: null,
+    dData:[],
+    
   });
 
   const [instate2, setInstate2] = useState({
     loading: false,
-    closeData: null,
   });
 
   const [instate3, setInstate3] = useState({
     loading: false,
-    closeData: null,
   });
 
   const [instate4, setInstate4] = useState({
     loading: false,
-    closeData: null,
   });
 
   
@@ -125,7 +123,8 @@ export default function Charts() {
         name: 'Data',
         data: instate.dData,
         type: 'candlestick',
-      cropThreshold: 1000000
+        cropThreshold: 1000000
+      
       },
       
 
@@ -190,6 +189,7 @@ export default function Charts() {
         name: 'Data',
         data: instate2.dData,
         type: 'candlestick',
+        cropThreshold: 1000000
 
       }
 
@@ -250,6 +250,7 @@ export default function Charts() {
         name: 'Data',
         data: instate3.dData,
         type: 'candlestick',
+        cropThreshold: 1000000
 
       }
 
@@ -310,6 +311,7 @@ export default function Charts() {
         name: 'Data',
         data: instate4.dData,
         type: 'candlestick',
+        cropThreshold: 1000000
 
       }
 
@@ -322,181 +324,90 @@ export default function Charts() {
 
   };
 
+  function FirstRender(ticker){
+    const fullUrl=chartUrl+ticker
+    const newData=[];
+
+
+    fetch(fullUrl)
+    .then(result=>result.json())
+    .then(jsonResult=>{
+      jsonResult.data.forEach(oneResult=>{
+        newData.push({x: new Date((oneResult.timestamp)*1000), open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close})
+      })
+      return newData
+      
+      
+    })
+
+    
+  }
+
   // Re-render of highchart
-  useEffect(() => {if(setOnlyOneRender){
-    setOnlyOneRender(false)
-    console.log('first render',chartUrl+`AAPL`);
-    fetch(chartUrl+`AAPL`)
+  useEffect(() => {
+    fetch(chartUrl+ticker1.value)
       .then(result => result.json())
       .then(jsonData => {
-        
-        const total=jsonData.total;
-        console.log('total',total)
+        const newData=[]
         const dataLength=lengthArray
-        dataLength.value1=total
+        dataLength.value1=jsonData.data.length;
+        jsonData.data.forEach(item => {
+          const Ddate = new Date(((item.timestamp)*1000));
+
+          newData.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
+        });
+        setInstate({ loading: false, dData: newData })
         setLengthArray(dataLength)
-        const newData1=[]
-        const newSecData=[]
-        for(let i=0;i<1;i++){
-          if(i===0){
-            console.log('first fetch')
-            console.log(`${chartUrl}AAPL&$limit=1000`)
-            fetch(`${chartUrl}AAPL&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                console.log('fetched',jsonResult.data)
-                jsonResult.data.forEach(oneResult=>{
-                  const Ddate = new Date((oneResult.timestamp)*1000);
-                  //console.log('date',Ddate)
-                  newData1.push({ x: (oneResult.timestamp)*1000, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                  newSecData.push({x:(oneResult.timestamp)*1000, value:oneResult.value})
-                })
-                setInstate({ loading: false, dData: newData1 ,aData:newSecData});
-                // console.log('SEND FIRST DATA',data1)
-              })
-          }
-          if((i>0)&&(((total-(i*1000))<1000))){
-            console.log('step number',i+1)
-            fetch(`${chartUrl}AAPL&$skip=${i*1000}&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                jsonResult.data.forEach(oneResult=>{
-                const Ddate = new Date((oneResult.timestamp)*1000);
-                
-                newData1.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                
-                })
-                console.log('SEND SOME DATA')
-                setInstate({ loading: false, dData: newData1 })
-              })
-          }
-          if((total-(i*1000))<1000){
-            fetch(`${chartUrl}AAPL&$skip=${i*1000}&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                jsonResult.data.forEach(oneResult=>{
-                const Ddate = new Date((oneResult.timestamp)*1000);
-                
-                newData1.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                })
-                console.log('SEND FINAL DATA')
-            //     console.log('last circle')
-            // console.log('length',data1.length)
-            // console.log('data',data1)
-             setInstate({ loading: false, dData: newData1 })
-              })
-            
-          }
-          
-        }
-        
       })
 
-    fetch(chartUrl+'MSFT')
+    fetch(chartUrl+ticker2.value)
       .then(result => result.json())
       .then(jsonData => {
-        const total=jsonData.total;
+        const newData=[]
         const dataLength=lengthArray
-        dataLength.value2=total
-        setLengthArray(dataLength)
+        dataLength.value1=jsonData.data.length;
+        jsonData.data.forEach(item => {
+          const Ddate = new Date(((item.timestamp)*1000));
 
-        for(let i=0;i<(total/1000);i++){
-          if(i===0){
-            fetch(`${chartUrl}MSFT&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                jsonResult.data.forEach(oneResult=>{
-                  const Ddate = new Date((oneResult.timestamp)*1000);
-                  data2.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                })
-              })
-          }
-          if(i>0){
-            fetch(`${chartUrl}MSFT&$skip=${i*1000}&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                jsonResult.data.forEach(oneResult=>{
-                const Ddate = new Date((oneResult.timestamp)*1000);
-                data2.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                })
-              })
-          }
-        }
-        setInstate2({ loading: false, dData: data2 })
+          newData.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
+        });
+        setInstate2({ loading: false, dData: newData })
+        setLengthArray(dataLength)
       })
 
-    fetch(chartUrl+`GOOGL`)
+    fetch(chartUrl+ticker3.value)
       .then(result => result.json())
       .then(jsonData => {
-        const total=jsonData.total;
+        const newData=[]
         const dataLength=lengthArray
-        dataLength.value3=total
-        setLengthArray(dataLength)
+        dataLength.value1=jsonData.data.length;
+        jsonData.data.forEach(item => {
+          const Ddate = new Date(((item.timestamp)*1000));
 
-        for(let i=0;i<(total/1000);i++){
-          if(i===0){
-            fetch(`${chartUrl}GOOGL&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                jsonResult.data.forEach(oneResult=>{
-                  const Ddate = new Date((oneResult.timestamp)*1000);
-                  data3.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                })
-              })
-          }
-          if(i>0){
-            fetch(`${chartUrl}GOOGL&$skip=${i*1000}&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                jsonResult.data.forEach(oneResult=>{
-                const Ddate = new Date((oneResult.timestamp)*1000);
-                data3.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                })
-              })
-          }
-        }
-        setInstate3({ loading: false, dData: data3 })
+          newData.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
+        });
+        setInstate3({ loading: false, dData: newData })
+        setLengthArray(dataLength)
       })
 
-    fetch(chartUrl+`AMZN`)
+    fetch(chartUrl+ticker4.value)
       .then(result => result.json())
       .then(jsonData => {
-        const total=jsonData.total;
+        const newData=[]
         const dataLength=lengthArray
-        dataLength.value4=total
-        setLengthArray(dataLength)
+        dataLength.value1=jsonData.data.length;
+        jsonData.data.forEach(item => {
+          const Ddate = new Date(((item.timestamp)*1000));
 
-        for(let i=0;i<(total/1000);i++){
-          if(i===0){
-            fetch(`${chartUrl}AMZN&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                jsonResult.data.forEach(oneResult=>{
-                  const Ddate = new Date((oneResult.timestamp)*1000);
-                  data4.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                })
-              })
-          }
-          if(i>0){
-            fetch(`${chartUrl}AMZN&$skip=${i*1000}&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                jsonResult.data.forEach(oneResult=>{
-                const Ddate = new Date((oneResult.timestamp)*1000);
-                data4.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                })
-              })
-          }
-        }
-        //console.log('done 2',data1)
-        setInstate4({ loading: false, dData: data4 })
+          newData.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
+        });
+        setInstate4({ loading: false, dData: newData })
+        setLengthArray(dataLength)
       })
 
-  }}, []);
+  }, []);
 
   const changeTicker = (event) => {
-     console.log('change to', event)
-     console.log('context', dialContext)
     switch (dialContext) {
       case 1:
         setTicker1(event)
@@ -554,15 +465,12 @@ export default function Charts() {
           }
         }
 
-        console.log('instate',instate);
         setChangedData(ourData);  
 
-        console.log('context',dialContext)
       switch (dialContext) {
         case 1:
           if(lengthArray.value1===total){
             ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-            console.log('proc equal length', ourData)
           }
           const firstState=instate;
           const newLength1=lengthArray;
@@ -576,7 +484,6 @@ export default function Charts() {
         case 2:
           if(lengthArray.value2===result.total){
             ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-            console.log('proc equal length', ourData)
           }
           const secondState=instate2;
           const newLength2=lengthArray;
@@ -589,7 +496,6 @@ export default function Charts() {
         case 3:
           if(lengthArray.value3===result.total){
             ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-            console.log('proc equal length', ourData)
           }
           const thirdState=instate3;
           const newLength3=lengthArray;
@@ -602,7 +508,6 @@ export default function Charts() {
         case 4:
           if(lengthArray.value4===result.total){
             ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-            console.log('proc equal length', ourData)
           }
           const fourthState=instate4;
           const newLength4=lengthArray;
@@ -665,7 +570,7 @@ export default function Charts() {
 
         <div>
            <AsyncSelect
-           value={ticker1}
+           
            
             defaultOptions
             loadOptions={LoadOption}
@@ -687,7 +592,7 @@ export default function Charts() {
 
         <div>
         <AsyncSelect
-           value={ticker2}
+           
            
             defaultOptions
             loadOptions={LoadOption}
@@ -706,7 +611,7 @@ export default function Charts() {
       <Stack direction='row'>
         <div>
         <AsyncSelect
-           value={ticker3}
+           
            
             defaultOptions
             loadOptions={LoadOption}
@@ -724,7 +629,7 @@ export default function Charts() {
 
         <div>
         <AsyncSelect
-           value={ticker4}
+           
            
             defaultOptions
             loadOptions={LoadOption}
