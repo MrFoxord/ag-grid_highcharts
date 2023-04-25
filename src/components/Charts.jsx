@@ -66,6 +66,7 @@ export default function Charts() {
   const [ticker2, setTicker2] = useState(tickersArray[1])
   const [ticker3, setTicker3] = useState(tickersArray[2])
   const [ticker4, setTicker4] = useState(tickersArray[3])
+  const [temporArray,setTempArray]=useState([])
 
   const options1 = {
     credits: {
@@ -433,39 +434,53 @@ export default function Charts() {
   }
   const changeChartData=(event)=>{
     const askedUrl=chartUrl+event.value
-    
-    fetch(askedUrl)
+    console.log('asker url',askedUrl)
+    fetch(`${askedUrl}&$limit=1000`)
       .then(r=>r.json())
       .then( result=>{
-
+         console.log('done 1',result)
         if(result.data.length>0){
-        const ourData=[]
-        const total=result.total
         
-        for(let i=0;i<(total/1000);i++){
-          if(i===0){
-            fetch(`${askedUrl}&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                jsonResult.data.forEach(oneResult=>{
-                  const Ddate = new Date((oneResult.timestamp)*1000);
-                  ourData.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                })
-              })
-          }
-          if(i>0){
-            fetch(`${askedUrl}&$skip=${i*1000}&$limit=1000`)
-              .then(result=>result.json())
-              .then(jsonResult=>{
-                jsonResult.data.forEach(oneResult=>{
-                const Ddate = new Date((oneResult.timestamp)*1000);
-                ourData.push({ x: Ddate, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
-                })
-              })
-          }
+        const total=result.total
+        let temporData=[];
+        let someArr=[]
+        result.data.forEach(oneResult=>{
+          temporData.push({ x: (oneResult.timestamp)*1000, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
+        })
+         console.log('done 2',temporData)
+         setTempArray(temporData)
+
+        if(total>1000){
+
+        for(let i=1;i<(total/1000);i++){
+          console.log('some cycle')
+          someArr.push(`${askedUrl}&$skip=${i*1000}&$limit=1000`)
         }
 
-        setChangedData(ourData);  
+        let requests=someArr.map(oneUrl=>fetch(oneUrl).then(result=>{return(result.json())}))
+        console.log('data before promise.all',temporData)
+        Promise.all(requests)
+          .then(response=>{
+            console.log('response',response)
+            response.forEach(oneResponse=>{
+              oneResponse.data.forEach(oneData=>{
+                temporData.push({ x: (oneData.timestamp)*1000, open: oneData.open, high: oneData.high, low: oneData.low, close: oneData.close })
+              })
+            })
+            console.log('after Promise.all',temporData)
+          })
+          
+          
+      }
+
+        
+        else{
+
+        }
+        
+        const ourData=[]
+        // console.log('finalArray',ourData)
+        // setChangedData(ourData);  
 
       switch (dialContext) {
         case 1:
@@ -541,6 +556,10 @@ export default function Charts() {
 
    
   }
+useEffect(()=>{
+console.log('array changed',temporArray)
+},[temporArray])
+
   useEffect(()=>{
     console.log('instate 1 ',instate)
   },[instate])
