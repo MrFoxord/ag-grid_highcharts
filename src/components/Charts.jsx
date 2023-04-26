@@ -83,6 +83,7 @@ export default function Charts() {
     rangeSelector: {
       enabled: true,
       allButtonsEnabled: true,
+      floating:true,
 
       buttonTheme: {
         width: 200
@@ -135,7 +136,8 @@ export default function Charts() {
       tickPixelInterval: 10000,
       visible: false,
       ordinal:false,
-      type:'datetime'
+      type:'datetime',
+      showEmpty:true
       
     },
 
@@ -383,7 +385,7 @@ export default function Charts() {
         const dataLength=lengthArray
         dataLength.value1=jsonData.data.length;
         jsonData.data.forEach(item => {
-          const Ddate = new Date(((item.timestamp)*1000));
+          const Ddate = new Date((item.timestamp)*1000);
 
           newData.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
         });
@@ -457,85 +459,82 @@ export default function Charts() {
           someArr.push(`${askedUrl}&$skip=${i*1000}&$limit=1000`)
         }
 
-        let requests=someArr.map(oneUrl=>fetch(oneUrl).then(result=>{return(result.json())}))
+        let requests=someArr.map(oneUrl=>fetch(oneUrl).then(result=>{console.log('fetching another datas');return(result.json())}))
         console.log('data before promise.all',temporData)
         Promise.all(requests)
           .then(response=>{
             console.log('response',response)
             response.forEach(oneResponse=>{
+              console.log('adding another datas')
               oneResponse.data.forEach(oneData=>{
                 temporData.push({ x: (oneData.timestamp)*1000, open: oneData.open, high: oneData.high, low: oneData.low, close: oneData.close })
               })
             })
             console.log('after Promise.all',temporData)
+            switch (dialContext) {
+              case 1:
+                if(lengthArray.value1===total){
+                  temporData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
+                }
+                const firstState=instate;
+                const newLength1=lengthArray;
+                newLength1.value1=temporData.length;
+                firstState.dData=temporData;
+                setLengthArray(newLength1);
+                console.log('send to state')
+                setInstate(firstState);
+                
+                break
+        
+              case 2:
+                if(lengthArray.value2===result.total){
+                  temporData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
+                }
+                const secondState=instate2;
+                const newLength2=lengthArray;
+                newLength2.value2=temporData.length;
+                secondState.dData=temporData;
+                setLengthArray(newLength2);
+                setInstate2(secondState);
+                break
+        
+              case 3:
+                if(lengthArray.value3===result.total){
+                  temporData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
+                }
+                const thirdState=instate3;
+                const newLength3=lengthArray;
+                newLength3.value3=temporData.length;
+                thirdState.dData=temporData;
+                setLengthArray(newLength3);
+                setInstate3(thirdState);
+                break
+        
+              case 4:
+                if(lengthArray.value4===result.total){
+                  temporData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
+                }
+                const fourthState=instate4;
+                const newLength4=lengthArray;
+                newLength4.value4=temporData.length;
+                fourthState.dData=temporData;
+                setLengthArray(newLength4);
+                setInstate4(fourthState);
+                break
+        
+              default:
+                break
+        
+            }
           })
           
           
       }
-
         
-        else{
-
-        }
-        
-        const ourData=[]
-        // console.log('finalArray',ourData)
+         console.log('finalArray',temporData)
         // setChangedData(ourData);  
 
-      switch (dialContext) {
-        case 1:
-          if(lengthArray.value1===total){
-            ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-          }
-          const firstState=instate;
-          const newLength1=lengthArray;
-          newLength1.value1=ourData.length;
-          firstState.dData=ourData;
-          setLengthArray(newLength1);
-          //setInstate(firstState);
-          
-          break
-  
-        case 2:
-          if(lengthArray.value2===result.total){
-            ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-          }
-          const secondState=instate2;
-          const newLength2=lengthArray;
-          newLength2.value2=ourData.length;
-          secondState.dData=ourData;
-          setLengthArray(newLength2);
-          setInstate2(secondState);
-          break
-  
-        case 3:
-          if(lengthArray.value3===result.total){
-            ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-          }
-          const thirdState=instate3;
-          const newLength3=lengthArray;
-          newLength3.value3=ourData.length;
-          thirdState.dData=ourData;
-          setLengthArray(newLength3);
-          setInstate3(thirdState);
-          break
-  
-        case 4:
-          if(lengthArray.value4===result.total){
-            ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-          }
-          const fourthState=instate4;
-          const newLength4=lengthArray;
-          newLength4.value4=ourData.length;
-          fourthState.dData=ourData;
-          setLengthArray(newLength4);
-          setInstate4(fourthState);
-          break
-  
-        default:
-          break
-  
-      }}
+      }
       else{setWarning(true)}
       
       })
@@ -547,11 +546,11 @@ export default function Charts() {
   },[changedData])
 
   const LoadOption=(inputText)=>{
-    console.log('LOAD OPTIOONS',typeof inputText)
+    console.log('LOAD OPTIOONS',inputText)
 
     const url='http://62.216.47.4:21005/api/sec_data_tickers';
     return fetch(`${url}?ticker=`+inputText).then(r=>r.json()).then(result=>{
-       return (result.data.map(oneResult=>{return ({value:oneResult.ticker, label:oneResult.ticker})}))})
+       return (result.data.map(oneResult=>{console.log('return',oneResult) ;return ({value:oneResult.ticker, label:oneResult.ticker})}))})
 
 
    
