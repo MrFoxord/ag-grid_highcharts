@@ -6,12 +6,14 @@ import { useState, useEffect } from 'react';
 import { Stack, TextField, Button,Alert,IconButton,Collapse } from '@mui/material';
 
 export default function Charts() {
-  const chartUrl='http://62.216.47.4:21005/api/data?type=price&symbol='
+  const chartUrl='http://62.216.47.4:21005/api/tickers_intraday_data?ticker='
+  const chandeChartUrl='http://62.216.47.4:21005/api/tickers_intraday_data'
   const data1 = [];
   const data2 = [];
   const data3 = [];
   const data4 = [];
   const [changedData,setChangedData]=useState([])
+  const [onluOneRender,setOnlyOneRender]=useState(true)
   const [lengthArray,setLengthArray]=useState({
     value1:0,
     value2:0,
@@ -20,41 +22,39 @@ export default function Charts() {
   })
   const [instate, setInstate] = useState({
     loading: false,
-    closeData: null,
+    dData:[],
+    
   });
 
   const [instate2, setInstate2] = useState({
     loading: false,
-    closeData: null,
   });
 
   const [instate3, setInstate3] = useState({
     loading: false,
-    closeData: null,
   });
 
   const [instate4, setInstate4] = useState({
     loading: false,
-    closeData: null,
   });
 
   
   const [tickersArray, setTickersArray] = useState([
     {
-      value: 'CLSK',
-      label: 'CLSK'
+      value: 'AAPL',
+      label: 'AAPL'
     },
     {
-      value: 'NVAX',
-      label: 'NVAX'
+      value: 'MSFT',
+      label: 'MSFT'
     },
     {
-      value: 'EQ',
-      label: 'EQ'
+      value: 'GOOGL',
+      label: 'GOOGL'
     },
     {
-      value: 'CRSP',
-      label: 'CRSP'
+      value: 'AMZN',
+      label: 'AMZN'
     }])
 
 
@@ -66,6 +66,7 @@ export default function Charts() {
   const [ticker2, setTicker2] = useState(tickersArray[1])
   const [ticker3, setTicker3] = useState(tickersArray[2])
   const [ticker4, setTicker4] = useState(tickersArray[3])
+  const [temporArray,setTempArray]=useState([])
 
   const options1 = {
     credits: {
@@ -82,27 +83,33 @@ export default function Charts() {
     rangeSelector: {
       enabled: true,
       allButtonsEnabled: true,
+      floating:true,
 
       buttonTheme: {
-        width: 50
+        width: 200
       },
       buttons: [{
         type: 'millisecond',
-        count: 10,
-        text: '10 mins'
+        count: 3600000,
+        text: '10 points'
       },
       {
         type: 'millisecond',
-        count: 60,
-        text: '1 hour'
+        count: 86400000,
+        text: '50 points'
+      },
+      {
+        type: 'millisecond',
+        count: 31536000000,
+        text: '100 points'
       },
       {
         type: 'all',
         count: 1,
         text: 'All'
       }],
-      selected: 2,
-      inputEnabled: false
+      selected: 10,
+      inputEnabled: true
     },
     scrollbar: {
       enabled: true,
@@ -111,21 +118,30 @@ export default function Charts() {
     navigator: {
       enabled: true
     },
+    
+    
     series: [
       {
         name: 'Data',
         data: instate.dData,
         type: 'candlestick',
-
-      }
+        cropThreshold: 1000000
+      
+      },
+      
 
     ],
 
     xAxis: {
-      tickPixelInterval: 10,
-      visible: false
+      tickPixelInterval: 10000,
+      visible: false,
+      ordinal:false,
+      type:'datetime',
+      showEmpty:true
+      
     },
 
+    
   };
   const options2 = {
     chart: {
@@ -176,6 +192,7 @@ export default function Charts() {
         name: 'Data',
         data: instate2.dData,
         type: 'candlestick',
+        cropThreshold: 1000000
 
       }
 
@@ -236,6 +253,7 @@ export default function Charts() {
         name: 'Data',
         data: instate3.dData,
         type: 'candlestick',
+        cropThreshold: 1000000
 
       }
 
@@ -296,6 +314,7 @@ export default function Charts() {
         name: 'Data',
         data: instate4.dData,
         type: 'candlestick',
+        cropThreshold: 1000000
 
       }
 
@@ -308,79 +327,90 @@ export default function Charts() {
 
   };
 
+  function FirstRender(ticker){
+    const fullUrl=chartUrl+ticker
+    const newData=[];
+
+
+    fetch(fullUrl)
+    .then(result=>result.json())
+    .then(jsonResult=>{
+      jsonResult.data.forEach(oneResult=>{
+        newData.push({x: new Date((oneResult.timestamp)*1000), open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close})
+      })
+      return newData
+      
+      
+    })
+
+    
+  }
+
   // Re-render of highchart
   useEffect(() => {
-    setInstate({ loading: true });
-    fetch(chartUrl+`CLSK`)
+    fetch(chartUrl+ticker1.value)
       .then(result => result.json())
       .then(jsonData => {
-        //console.log('done',jsonData)
+        const newData=[]
         const dataLength=lengthArray
-        console.log('LENGTH',jsonData.data.length);
         dataLength.value1=jsonData.data.length;
         jsonData.data.forEach(item => {
-          const Ddate = new Date(item.date);
+          const Ddate = new Date(((item.timestamp)*1000));
 
-          data1.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
+          newData.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
         });
-        //console.log('done 2',data1)
-        setInstate({ loading: false, dData: data1 })
+        setInstate({ loading: false, dData: newData })
+        setLengthArray(dataLength)
       })
 
-    fetch(chartUrl+'NVAX')
+    fetch(chartUrl+ticker2.value)
       .then(result => result.json())
       .then(jsonData => {
+        const newData=[]
         const dataLength=lengthArray
-        console.log('LENGTH',jsonData.data.length);
         dataLength.value1=jsonData.data.length;
-
-        //console.log('done',jsonData)
         jsonData.data.forEach(item => {
-          const Ddate = new Date(item.date);
+          const Ddate = new Date(((item.timestamp)*1000));
 
-          data2.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
+          newData.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
         });
-        //console.log('done 2',data1)
-        setInstate2({ loading: false, dData: data2 })
+        setInstate2({ loading: false, dData: newData })
+        setLengthArray(dataLength)
       })
 
-    fetch(chartUrl+`EQ`)
+    fetch(chartUrl+ticker3.value)
       .then(result => result.json())
       .then(jsonData => {
+        const newData=[]
         const dataLength=lengthArray
-        console.log('LENGTH',jsonData.data.length);
         dataLength.value1=jsonData.data.length;
-        //console.log('done',jsonData)
         jsonData.data.forEach(item => {
-          const Ddate = new Date(item.date);
+          const Ddate = new Date((item.timestamp)*1000);
 
-          data3.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
+          newData.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
         });
-        //console.log('done 2',data1)
-        setInstate3({ loading: false, dData: data3 })
+        setInstate3({ loading: false, dData: newData })
+        setLengthArray(dataLength)
       })
 
-    fetch(chartUrl+`CRSP`)
+    fetch(chartUrl+ticker4.value)
       .then(result => result.json())
       .then(jsonData => {
+        const newData=[]
         const dataLength=lengthArray
-        console.log('LENGTH',jsonData.data.length);
         dataLength.value1=jsonData.data.length;
-        //console.log('done',jsonData)
         jsonData.data.forEach(item => {
-          const Ddate = new Date(item.date);
+          const Ddate = new Date(((item.timestamp)*1000));
 
-          data4.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
+          newData.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
         });
-        //console.log('done 2',data1)
-        setInstate4({ loading: false, dData: data4 })
+        setInstate4({ loading: false, dData: newData })
+        setLengthArray(dataLength)
       })
 
   }, []);
 
   const changeTicker = (event) => {
-     console.log('change to', event)
-     console.log('context', dialContext)
     switch (dialContext) {
       case 1:
         setTicker1(event)
@@ -406,78 +436,105 @@ export default function Charts() {
   }
   const changeChartData=(event)=>{
     const askedUrl=chartUrl+event.value
-    
-    fetch(askedUrl)
+    console.log('asker url',askedUrl)
+    fetch(`${askedUrl}&$limit=1000`)
       .then(r=>r.json())
       .then( result=>{
-
+         console.log('done 1',result)
         if(result.data.length>0){
-        const ourData=[]
-        result.data.forEach(oneData=>{
-          ourData.push({x:new Date(oneData.date), open: oneData.open, high: oneData.high, low: oneData.low, close: oneData.close})
+        
+        const total=result.total
+        let temporData=[];
+        let someArr=[]
+        result.data.forEach(oneResult=>{
+          temporData.push({ x: (oneResult.timestamp)*1000, open: oneResult.open, high: oneResult.high, low: oneResult.low, close: oneResult.close });
         })
-        console.log('instate',instate);
-        setChangedData(result.data);  
+         console.log('done 2',temporData)
+         setTempArray(temporData)
 
-        console.log('context',dialContext)
-      switch (dialContext) {
-        case 1:
-          if(lengthArray.value1===result.data.length){
-            ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-            console.log('proc equal length', ourData)
-          }
-          const firstState=instate;
-          const newLength1=lengthArray;
-          newLength1.value1=ourData.length;
-          firstState.dData=ourData;
-          setLengthArray(newLength1);
-          setInstate(firstState);
+        if(total>1000){
+
+        for(let i=1;i<2;i++){
+          console.log('some cycle')
+          someArr.push(`${askedUrl}&$skip=${i*1000}&$limit=1000`)
+        }
+
+        let requests=someArr.map(oneUrl=>fetch(oneUrl).then(result=>{console.log('fetching another datas');return(result.json())}))
+        console.log('data before promise.all',temporData)
+        Promise.all(requests)
+          .then(response=>{
+            console.log('response',response)
+            response.forEach(oneResponse=>{
+              console.log('adding another datas')
+              oneResponse.data.forEach(oneData=>{
+                temporData.push({ x: (oneData.timestamp)*1000, open: oneData.open, high: oneData.high, low: oneData.low, close: oneData.close })
+              })
+            })
+            console.log('after Promise.all',temporData)
+            switch (dialContext) {
+              case 1:
+                if(lengthArray.value1===total){
+                  temporData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
+                }
+                const firstState=instate;
+                const newLength1=lengthArray;
+                newLength1.value1=temporData.length;
+                firstState.dData=temporData;
+                setLengthArray(newLength1);
+                console.log('send to state')
+                setInstate(firstState);
+                
+                break
+        
+              case 2:
+                if(lengthArray.value2===result.total){
+                  temporData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
+                }
+                const secondState=instate2;
+                const newLength2=lengthArray;
+                newLength2.value2=temporData.length;
+                secondState.dData=temporData;
+                setLengthArray(newLength2);
+                setInstate2(secondState);
+                break
+        
+              case 3:
+                if(lengthArray.value3===result.total){
+                  temporData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
+                }
+                const thirdState=instate3;
+                const newLength3=lengthArray;
+                newLength3.value3=temporData.length;
+                thirdState.dData=temporData;
+                setLengthArray(newLength3);
+                setInstate3(thirdState);
+                break
+        
+              case 4:
+                if(lengthArray.value4===result.total){
+                  temporData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
+                }
+                const fourthState=instate4;
+                const newLength4=lengthArray;
+                newLength4.value4=temporData.length;
+                fourthState.dData=temporData;
+                setLengthArray(newLength4);
+                setInstate4(fourthState);
+                break
+        
+              default:
+                break
+        
+            }
+          })
           
-          break
-  
-        case 2:
-          if(lengthArray.value2===result.data.length){
-            ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-            console.log('proc equal length', ourData)
-          }
-          const secondState=instate2;
-          const newLength2=lengthArray;
-          newLength2.value2=ourData.length;
-          secondState.dData=ourData;
-          setLengthArray(newLength2);
-          setInstate2(secondState);
-          break
-  
-        case 3:
-          if(lengthArray.value3===result.data.length){
-            ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-            console.log('proc equal length', ourData)
-          }
-          const thirdState=instate3;
-          const newLength3=lengthArray;
-          newLength3.value3=ourData.length;
-          thirdState.dData=ourData;
-          setLengthArray(newLength3);
-          setInstate3(thirdState);
-          break
-  
-        case 4:
-          if(lengthArray.value4===result.data.length){
-            ourData.unshift({x:new Date (result.data[0].date-1000), open:0, close:0, high:0, low:0})
-            console.log('proc equal length', ourData)
-          }
-          const fourthState=instate4;
-          const newLength4=lengthArray;
-          newLength4.value4=ourData.length;
-          fourthState.dData=ourData;
-          setLengthArray(newLength4);
-          setInstate4(fourthState);
-          break
-  
-        default:
-          break
-  
-      }}
+          
+      }
+        
+         console.log('finalArray',temporData)
+        // setChangedData(ourData);  
+
+      }
       else{setWarning(true)}
       
       })
@@ -489,15 +546,22 @@ export default function Charts() {
   },[changedData])
 
   const LoadOption=(inputText)=>{
-    console.log('LOAD OPTIOONS',typeof inputText)
+    console.log('LOAD OPTIOONS',inputText)
 
     const url='http://62.216.47.4:21005/api/sec_data_tickers';
     return fetch(`${url}?ticker=`+inputText).then(r=>r.json()).then(result=>{
-       return (result.data.map(oneResult=>{return ({value:oneResult.ticker, label:oneResult.ticker})}))})
+       return (result.data.map(oneResult=>{console.log('return',oneResult) ;return ({value:oneResult.ticker, label:oneResult.ticker})}))})
 
 
    
   }
+useEffect(()=>{
+console.log('array changed',temporArray)
+},[temporArray])
+
+  useEffect(()=>{
+    console.log('instate 1 ',instate)
+  },[instate])
   return (
     <div>
       <h2>Charts</h2>
@@ -524,7 +588,7 @@ export default function Charts() {
 
         <div>
            <AsyncSelect
-           value={ticker1}
+           
            
             defaultOptions
             loadOptions={LoadOption}
@@ -546,7 +610,7 @@ export default function Charts() {
 
         <div>
         <AsyncSelect
-           value={ticker2}
+           
            
             defaultOptions
             loadOptions={LoadOption}
@@ -565,7 +629,7 @@ export default function Charts() {
       <Stack direction='row'>
         <div>
         <AsyncSelect
-           value={ticker3}
+           
            
             defaultOptions
             loadOptions={LoadOption}
@@ -583,7 +647,7 @@ export default function Charts() {
 
         <div>
         <AsyncSelect
-           value={ticker4}
+           
            
             defaultOptions
             loadOptions={LoadOption}

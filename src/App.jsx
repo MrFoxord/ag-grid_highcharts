@@ -4,6 +4,7 @@ import { Button,Drawer,AppBar,Toolbar,IconButton } from '@mui/material';
 import { Menu } from '@mui/icons-material'
 import Ag from './components/Ag.jsx';
 import Charts from './components/Charts.jsx'
+import Parser from './components/Parser.jsx'
 
 function App() {
   
@@ -20,6 +21,7 @@ function App() {
 
   const table=<div><Ag/></div>
   const chart=<div><Charts/></div>;
+  const parser=<div><Parser/></div>
 
   
   const [content,setContent]=useState(table)
@@ -33,6 +35,12 @@ function App() {
   const changeToChart=()=>{
     if(content!==chart){
       setContent(chart)
+    }
+  }
+
+  const changeToParser=()=>{
+    if(content!== table){
+      setContent(parser)
     }
   }
   useEffect(()=>{
@@ -82,6 +90,12 @@ function App() {
             style={{ marginTop:'20px' }} onClick={()=>{
               changeToChart();
               hideMenu();}} >Charts</Button>
+        <Button variant='text' size="large"
+            edge="start"
+            color="inherit"
+            style={{ marginTop:'20px' }} onClick={()=>{
+              changeToParser();
+              hideMenu();}} >Parsing</Button>
       </Drawer>
 
       {content}
