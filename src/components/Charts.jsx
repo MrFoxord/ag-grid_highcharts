@@ -454,7 +454,7 @@ export default function Charts() {
 
         if(total>1000){
 
-        for(let i=1;i<(total/1000);i++){
+        for(let i=1;i<2;i++){
           console.log('some cycle')
           someArr.push(`${askedUrl}&$skip=${i*1000}&$limit=1000`)
         }
