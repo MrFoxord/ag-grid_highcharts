@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import { Button,Drawer,AppBar,Toolbar,IconButton } from '@mui/material';
 import { Menu } from '@mui/icons-material'
 import Ag from './components/Ag.jsx';
-import Charts from './components/Charts.jsx'
 import Parser from './components/Parser.jsx'
+import OneChart from './components/OneChart.jsx';
+import {Stack} from '@mui/material';
 
 function App() {
   
@@ -20,7 +21,17 @@ function App() {
   
 
   const table=<div><Ag/></div>
-  const chart=<div><Charts/></div>;
+  const chart=<div>
+                <h2>Charts</h2>
+                <Stack direction='row'>
+                  <OneChart/>
+                  <OneChart/>
+                </Stack>
+                <Stack direction='row'>
+                  <OneChart/>
+                  <OneChart/>
+                </Stack>
+                </div>;
   const parser=<div><Parser/></div>
 
   
