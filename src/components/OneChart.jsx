@@ -9,18 +9,16 @@ import ReactDatePicker from 'react-datepicker';
 export default function Charts() {
   const chartUrl = 'http://62.216.47.4:21005/api/tickers_intraday_data?ticker='
   
-
+  const [stateInfoWarn,setStateInfoWarn]=useState(false)
+  const [oneOfWarn,setOneOfWarn]=useState('info')
+  const [textInfo,setTextInfo]=useState('Loading data')
   const [dateBegin,setDateBegin]=useState(oneMonthBefore())
   const [dateEnd,setDateEnd]=useState(new Date(Date.now()))
   
   const [lengthArray, setLengthArray] = useState({
     value: 0,
   })
-  const [instate, setInstate] = useState({
-    loading: false,
-    dData: [],
-
-  });
+  const [instate, setInstate] = useState([]);
 
   const [warning, setWarning] = useState(false)
   const [ticker, setTicker] = useState('AAPL')
@@ -59,9 +57,44 @@ export default function Charts() {
         text: '1d'
       },
       {
+        type: 'day',
+        count: 7,
+        text: '1 week'
+      },
+      {
+        type: 'day',
+        count: 14,
+        text: '2 week'
+      },
+      {
         type: 'month',
         count: 1,
-        text: '1m'
+        text: '1 month'
+      },
+      {
+        type: 'month',
+        count: 2,
+        text: '2 month'
+      },
+      {
+        type: 'month',
+        count: 6,
+        text: '6 month'
+      },
+      {
+        type: 'year',
+        count: 1,
+        text: '1 year'
+      },
+      {
+        type: 'years',
+        count: 2,
+        text: '2 years'
+      },
+      {
+        type: 'year',
+        count: 5,
+        text: '5 years'
       },
       {
         type: 'all',
@@ -82,7 +115,7 @@ export default function Charts() {
     series: [
       {
         name: 'Data',
-        data: instate.dData,
+        data: instate,
 
         cropThreshold: 1000000
 
@@ -104,7 +137,7 @@ export default function Charts() {
     const parsedData=[]
     parsedData.push(unparsedData[0].slice(1));
     parsedData.push(unparsedData[1].slice(0,-3))
-    console.log('inside parse date',parsedData.join(' '));
+    // console.log('inside parse date',parsedData.join(' '));
     return (parsedData.join(' '))
   }
 
@@ -122,7 +155,7 @@ export default function Charts() {
 
           newData.push({ x: Ddate, open: item.open, high: item.high, low: item.low, close: item.close });
         });
-        setInstate({ loading: false, dData: newData })
+        setInstate(newData)
         setLengthArray(dataLength)
       })
 
@@ -138,16 +171,16 @@ export default function Charts() {
 
     const from=dateParseForFetch(dateBegin);
     const to=dateParseForFetch(dateEnd);
-    console.log('DEBUG 2',from)
-    console.log('DEBUG 3',to)
-    console.log('FULL URL:  ',`${fullUrl}&$limit=1000&datetime[$gte]=${from}&datetime[$lte]=${to}`)
+    // console.log('DEBUG 2',from)
+    // console.log('DEBUG 3',to)
+    // console.log('FULL URL:  ',`${fullUrl}&$limit=1000&datetime[$gte]=${from}&datetime[$lte]=${to}`)
     fetch(`${fullUrl}&$limit=1000&datetime[$gte]=${from}&datetime[$lte]=${to}`)
         .then(r=>r.json())
         .then(result=>{
-            console.log('done in function',result)
+            // console.log('done in function',result)
             if(result.data.length>0){
-                const newInstate=instate
                 const total=result.total;
+                console.log('total is',total)
                 let temporData=[];
                 let fetchesArray=[];
                 result.data.forEach(oneResult=>{
@@ -158,11 +191,11 @@ export default function Charts() {
                         low: oneResult.low, 
                         close: oneResult.close })
                 })
-                console.log('pushing after first fetch done');
-                newInstate.dData=temporData
-                setInstate(newInstate);
+                // console.log('pushing after first fetch done');
+                
                 if(total>1000){
                     for(let i=1;i<(total/1000);i++){
+                      console.log(`${fullUrl}&$limit=1000&$skip=${i*1000}&datetime[$gte]=${from}&datetime[$lte]=${to}`)
                         fetchesArray.push(`${fullUrl}&$limit=1000&$skip=${i*1000}&datetime[$gte]=${from}&datetime[$lte]=${to}`)
                     }
                     let fetchRequests=fetchesArray.map(oneFetch=>fetch(oneFetch).then(result=>{return result.json()}))
@@ -170,8 +203,9 @@ export default function Charts() {
                         .then(response=>{
                             console.log('response of promisses',response)
                             response.forEach(oneResponse=>{
-                                console.log('pushing to chart data of one fetch')
+                                console.log('pushing to chart data of one fetch',oneResponse)
                                 oneResponse.data.forEach(oneData=>{
+                                  //console.log('eachpush')
                                     temporData.push({ 
                                         x: (oneData.timestamp) * 1000, 
                                         open: oneData.open, 
@@ -179,9 +213,12 @@ export default function Charts() {
                                         low: oneData.low, 
                                         close: oneData.close 
                                     })
+                                    
                                 })
+
                                 
                             })
+                            const resultData=[]
                             if(lengthArray.value===total){
                                 temporData.unshift({ 
                                     x: new Date(result.data[0].date - 1000), 
@@ -193,13 +230,47 @@ export default function Charts() {
                             }
                             const newLength=lengthArray;
                             newLength.value=temporData.length;
-                            newInstate.dData=temporData;
-                            setInstate(newInstate);
+                            if(temporData.length>2000){
+                              const divider=Math.round(temporData.length/1000)
+                              for(let i=0;i<temporData.length;i++){
+                                if(((i+1)%divider)==0){
+                                  console.log('true')
+                                  resultData.push(temporData[i])
+                                }
+                          
+                              }
+                              console.log('done for instate',resultData)
+                              setInstate(resultData);
+                            }
+                            else{
+                              setInstate(temporData);
+                            }
+                            
                             setLengthArray(newLength);
                         })
-
+                        //console.log('finalArray', temporData)
                 }
-                console.log('finalArray', temporData)
+                else{
+                //console.log('total less then 1k')  
+                  if(lengthArray.value===total){
+                    temporData.unshift({ 
+                        x: new Date(result.data[0].date - 1000), 
+                        open: 0, 
+                        close: 0, 
+                        high: 0, 
+                        low: 0 
+                    })
+                }
+                const newLength=lengthArray;
+                            newLength.value=temporData.length;
+                            
+                            setInstate(temporData);
+                            //console.log('wanted result',temporData)
+                            //console.log('but we have',instate)
+                            setLengthArray(newLength);
+                            //console.log('finalArray', temporData)
+                          }
+                
             }
             else{
                 setWarning(true)
@@ -211,23 +282,52 @@ export default function Charts() {
 
 
   const LoadOption = (inputText) => {
-    console.log('LOAD OPTIOONS', inputText)
+    // console.log('LOAD OPTIOONS', inputText)
     const neededTicker=inputText.toUpperCase()
     const url = 'http://62.216.47.4:21005/api/sec_data_tickers';
     return fetch(`${url}?ticker=` + neededTicker).then(r => r.json()).then(result => {
-      return (result.data.map(oneResult => { console.log('return', oneResult); return ({ value: oneResult.ticker, label: oneResult.ticker }) }))
+      return (result.data.map(oneResult => { 
+        // console.log('return', oneResult); 
+        return ({ value: oneResult.ticker, label: oneResult.ticker }) }))
     })
 
 
 
   }
+  useEffect(()=>{
+    console.log('data changed',instate)
+    setTextInfo('Load data success')
+    setOneOfWarn('success')
+    setStateInfoWarn(true)
+    
+  },[instate]);
 
-  useEffect(() => {
-    console.log('ticker is ', ticker)
-    console.log('from',dateBegin)
-    console.log('to',dateEnd);
-    changeChart();
-  }, [ticker,dateBegin,dateEnd])
+  useEffect(()=>{
+    console.log('ticker changed',ticker)
+    setTextInfo('Loading data')
+    setOneOfWarn('info')
+    setStateInfoWarn(true)
+    changeChart()
+  },[ticker]);
+
+  useEffect(()=>{
+    console.log('begintime changed',dateBegin)
+    setTextInfo('Loading data')
+    setOneOfWarn('info')
+    setStateInfoWarn(true)
+    changeChart()
+  },[dateBegin]);
+
+  useEffect(()=>{
+    console.log('endtime changed',dateEnd)
+    setTextInfo('Loading data')
+    setOneOfWarn('info')
+    setStateInfoWarn(true)
+    changeChart()
+  },[dateEnd]);
+
+
+
   return (
     <div>
       <Collapse in={warning}>
@@ -248,7 +348,27 @@ export default function Charts() {
         >
           Asked  ticker to chart without data in database
         </Alert>
+        
       </Collapse>
+      <Collapse in={stateInfoWarn}>
+      <Alert
+          severity={oneOfWarn}
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={() => {
+                setStateInfoWarn(false);
+              }}
+            >close
+            </IconButton>
+          }
+          sx={{ mb: 2 }}
+        >
+         {textInfo}
+        </Alert>
+        </Collapse>
       <Stack direction='row'>
 
         <div>
@@ -259,7 +379,7 @@ export default function Charts() {
             cacheOptions
             onChange={(e) => {
               
-              console.log('change ticker')
+              console.log('change ticker',e.value.toUpperCase)
               setTicker(e.value.toUpperCase())
             }
             }
@@ -271,7 +391,11 @@ export default function Charts() {
               <ReactDatePicker
                 selected={dateBegin} 
                 onChange={(date) => {
-                  setDateBegin(date) 
+                  
+                  setDateBegin(date)
+                  console.log('change dateBegin',date) 
+
+                  
                   }} />
             </div>
             <div style={{ paddingLeft: '20px' }}>
@@ -280,6 +404,7 @@ export default function Charts() {
               selected={dateEnd} 
               onChange={(date) => { 
                 setDateEnd(date) 
+                console.log('change dateBegin',date) 
                 }} />
             </div>
 
