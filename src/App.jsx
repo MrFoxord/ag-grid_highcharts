@@ -35,7 +35,7 @@ function App() {
   const parser=<div><Parser/></div>
 
   
-  const [content,setContent]=useState(table)
+  const [content,setContent]=useState(parser)
 
   const changeToTable=()=>{
     if(content!== table){
