@@ -3,7 +3,7 @@ import AsyncSelect from 'react-select/async';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official'
 import { useState, useEffect } from 'react';
-import { Stack, TextField, Button, Alert, IconButton, Collapse } from '@mui/material';
+import { Stack, Alert, IconButton, Collapse } from '@mui/material';
 import ReactDatePicker from 'react-datepicker';
 
 export default function Charts() {
@@ -137,7 +137,6 @@ export default function Charts() {
     const parsedData=[]
     parsedData.push(unparsedData[0].slice(1));
     parsedData.push(unparsedData[1].slice(0,-3))
-    // console.log('inside parse date',parsedData.join(' '));
     return (parsedData.join(' '))
   }
 
@@ -171,13 +170,10 @@ export default function Charts() {
 
     const from=dateParseForFetch(dateBegin);
     const to=dateParseForFetch(dateEnd);
-    // console.log('DEBUG 2',from)
-    // console.log('DEBUG 3',to)
-    // console.log('FULL URL:  ',`${fullUrl}&$limit=1000&datetime[$gte]=${from}&datetime[$lte]=${to}`)
+
     fetch(`${fullUrl}&$limit=1000&datetime[$gte]=${from}&datetime[$lte]=${to}`)
         .then(r=>r.json())
         .then(result=>{
-            // console.log('done in function',result)
             if(result.data.length>0){
                 const total=result.total;
                 console.log('total is',total)
@@ -191,7 +187,6 @@ export default function Charts() {
                         low: oneResult.low, 
                         close: oneResult.close })
                 })
-                // console.log('pushing after first fetch done');
                 
                 if(total>1000){
                     for(let i=1;i<(total/1000);i++){
@@ -248,10 +243,8 @@ export default function Charts() {
                             
                             setLengthArray(newLength);
                         })
-                        //console.log('finalArray', temporData)
                 }
-                else{
-                //console.log('total less then 1k')  
+                else{ 
                   if(lengthArray.value===total){
                     temporData.unshift({ 
                         x: new Date(result.data[0].date - 1000), 
@@ -265,10 +258,7 @@ export default function Charts() {
                             newLength.value=temporData.length;
                             
                             setInstate(temporData);
-                            //console.log('wanted result',temporData)
-                            //console.log('but we have',instate)
                             setLengthArray(newLength);
-                            //console.log('finalArray', temporData)
                           }
                 
             }
@@ -282,12 +272,10 @@ export default function Charts() {
 
 
   const LoadOption = (inputText) => {
-    // console.log('LOAD OPTIOONS', inputText)
     const neededTicker=inputText.toUpperCase()
     const url = 'http://62.216.47.4:21005/api/sec_data_tickers';
     return fetch(`${url}?ticker=` + neededTicker).then(r => r.json()).then(result => {
       return (result.data.map(oneResult => { 
-        // console.log('return', oneResult); 
         return ({ value: oneResult.ticker, label: oneResult.ticker }) }))
     })
 
@@ -295,7 +283,7 @@ export default function Charts() {
 
   }
   useEffect(()=>{
-    console.log('data changed',instate)
+    console.log('data changed')
     setTextInfo('Load data success')
     setOneOfWarn('success')
     setStateInfoWarn(true)
@@ -303,7 +291,7 @@ export default function Charts() {
   },[instate]);
 
   useEffect(()=>{
-    console.log('ticker changed',ticker)
+    console.log('ticker changed')
     setTextInfo('Loading data')
     setOneOfWarn('info')
     setStateInfoWarn(true)
@@ -311,7 +299,7 @@ export default function Charts() {
   },[ticker]);
 
   useEffect(()=>{
-    console.log('begintime changed',dateBegin)
+    console.log('begintime changed')
     setTextInfo('Loading data')
     setOneOfWarn('info')
     setStateInfoWarn(true)
