@@ -6,7 +6,8 @@ import Ag from './components/Ag.jsx';
 import Parser from './components/Parser.jsx'
 import OneChart from './components/OneChart.jsx';
 import { Stack } from '@mui/material';
-import TestChart from './components/TestChart.tsx'
+import TestChart from './components/TestChart.jsx'
+import WsTest from './components/WsTest.jsx'
 function App() {
 
   const [stateMenu, setStateMenu] = useState(false)
@@ -32,10 +33,11 @@ function App() {
       <OneChart />
     </Stack>
   </div>;
+  const wsTest=<div><WsTest/></div>
   const parser = <div><Parser /></div>
 
 
-  const [content, setContent] = useState(chart)
+  const [content, setContent] = useState(wsTest)
 
   const changeToTable = () => {
     if (content !== table) {
@@ -57,6 +59,11 @@ function App() {
   const changeToTest=()=>{
     if(content!==test){
       setContent(test)
+    }
+  }
+  const changeToWsTest=()=>{
+    if(content!==wsTest){
+      setContent(wsTest)
     }
   }
   useEffect(() => {
@@ -124,6 +131,14 @@ function App() {
             changeToTest();
             hideMenu();
           }} >Test</Button>
+
+<Button variant='text' size="large"
+          edge="start"
+          color="inherit"
+          style={{ marginTop: '20px' }} onClick={() => {
+            changeToWsTest();
+            hideMenu();
+          }} >WebSocket</Button>
           
       </Drawer>
 

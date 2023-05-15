@@ -75,64 +75,6 @@ export default function Parser(){
                     .then(r=>r.json()));
                 const localArray=[]
                 
-                // fetch(`${ourParsedUrl}${chosenTicker.value}?api_token=${token}&interval=1m&from=${Math.round((localTo-(interval*(i+1)))/1000)}&to=${Math.round((localTo-(interval*i))/1000)}&fmt=json`,{
-                //     method:'GET',
-                //     headers:{
-                //         'Content-Type':'application/json'
-                //     }
-                // })
-                //     .then(result=> result.json())
-
-
-                // fetch(`${ourParsedUrl}${chosenTicker.value}?api_token=${token}&interval=1m&from=${Math.round((localTo-(interval*(i+1)))/1000)}&to=${Math.round((localTo-(interval*i))/1000)}&fmt=json`,{
-                //     method:'GET',
-                //     headers:{
-                //         'Content-Type':'application/json'
-                //     }
-                // })
-                //     .then(result=> result.json())
-                //     .then(result=>{
-                //         if(result.length!==0){
-                //             let j=0;
-                //             console.log('SUCCESS')
-                        
-                //         result.forEach(oneResult=>{
-                //             const intermedResult=oneResult;
-                //             j=j+1;
-                //             if(j==countInterval){
-                                
-                //                 switch (countInterval){
-                //                     case 60:
-                //                         intermedResult.ticker=chosenTicker.value
-                //                         localArray.push(intermedResult)
-                //                         break
-                //                     case 5:
-                //                         intermedResult.ticker=chosenTicker.value
-                //                         localArray.push(intermedResult)
-                //                         break
-                //                     case 1:
-                //                         intermedResult.ticker=chosenTicker.value
-                //                         localArray.push(intermedResult)
-                //                         break
-                //                     default:
-                //                         break
-                //                 }
-                //                 j=0
-                //             }
-                //         })
-                        
-                //         sendingToUrl(localArray,localFrom,localTo)
-                //     }
-                //     else{
-                //         console.log('UNSUCCESS')
-                //     }
-                    
-                //     })
-
-            //     if(i===(diapInCounts-1)){
-            //         setFinalArray(localArray)
-                
-            // }
                 
             }
             console.log('we have our fetches');

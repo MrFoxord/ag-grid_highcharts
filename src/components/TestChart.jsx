@@ -1,22 +1,26 @@
 import React from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official'
-import { useState } from 'react';
-import Sentiment from 'sentiment';
+import { useState,useEffect } from 'react';
+import {Dialog,DialogTitle,Button,Stack} from '@mui/material';
 
-
-function testParse(ourTwitt){
-    const someTwitt=ourTwitt
-    const sentiment=new Sentiment()
-    let result=sentiment.analyze(someTwitt)
-    console.log('result of sentiment',result)
-    return someTwitt
-
-}
 
 export default function TestChart() {
-    const sss = 1
-    const someTwitt = 'i hate, Cats, they are totally amazing!';
+    const [intradayData,setIntradayData]=useState('http://62.216.47.4:21005/api/tickers_intraday_data?ticker=BSX')
+    const [urlForNews,setUrlForNews]=useState('http://62.216.47.4:21005/api/au_news_data')
+    const [openDialog,setOpenDialog]=useState(false);
+    const [titleDialog,setTitleDialog]=useState('')
+    const [contentDialog,setContentDialog]=useState('')
+    const [author,setAuthor]=useState('')
+    const [showSent,setShowSent]=useState('')
+    const [urlOfNews,setUrlOfNews]=useState('')
+    const [tickersData,setTickersData]=useState([]);
+    const [formattedData,setFormatedData]=useState([]);
+    const [rowNews,setRowNews]=useState([]);
+    const [chartNews,setChartNews]=useState([])
+    const [testDates,setTestDates]=useState([])
+
+    const someTwitt = 'i hate, Cats, they are totally!';
 
     const [testData, setTestData] = useState([
         {
@@ -160,118 +164,29 @@ export default function TestChart() {
             "updatedAt": "2023-05-04T12:35:31.420Z"
         }
     ])
-    const [testFlags, setTestFlags] = useState([
-        {
-            "_id": "6453a69309624a003fddf400",
-            "x": 1672865940000,
-            "title": 'News from BBC',
-            "text": 'Some event with a description',
-            "inside_news": {
-                "aaa": "aaa",
-                "bbb": "bbb"
-            },
-            "ticker": "BSX",
-        },
-        {
-            "_id": "6453a69309624a003fddf451",
-            "x": 1672932300000,
-            "title": 'Some insider',
-            "text": 'Some event with a description',
-            "ticker": "BSX",
-            "inside_news": {
-                "aaa": "aaa",
-                "bbb": "bbb"
-            },
-        },
-        {
-            "_id": "6453a69309624a003fddf452",
-            "x": 1672935900000,
-            "title": 'Some second insider',
-            "text": 'Some event with a description',
-            "ticker": "BSX",
-            "inside_news": {
-                "aaa": "aaa",
-                "bbb": "bbb"
-            },
-        },
-        {
-            "_id": "6453a69309624a003fddf453",
-            "x": 1672939500000,
-            "title": 'BBC',
-            "text": 'Some event with a description',
-            "ticker": "BSX",
-            "inside_news": {
-                "aaa": "aaa",
-                "bbb": "bbb"
-            },
-        },
-        {
-            "_id": "6453a69309624a003fddf454",
-            "x": 1672943100000,
-            "title": 'ICTV',
-            "text": 'Some event with a description',
-            "ticker": "BSX",
-            "inside_news": {
-                "aaa": "aaa",
-                "bbb": "bbb"
-            },
-        },
-        {
-            "_id": "6453a69309624a003fddf455",
-            "x": 1672946700000,
-            "title": 6,
-            "text": 'Some event with a description',
-            "ticker": "BSX",
-            "inside_news": {
-                "aaa": "aaa",
-                "bbb": "bbb"
-            },
-        },
-        {
-            "_id": "6453a69309624a003fddf456",
-            "x": 1672950300000,
-            "title": 7,
-            "text": 'Some event with a description',
-            "ticker": "BSX",
-            "inside_news": {
-                "aaa": "aaa",
-                "bbb": "bbb"
-            },
-        },
-        {
-            "_id": "6453a69309624a003fddf457",
-            "x": 1673016660000,
-            "title": 8,
-            "text": 'Some event with a description',
-            "ticker": "BSX",
-            "inside_news": {
-                "aaa": "aaa",
-                "bbb": "bbb"
-            },
-        },
-        {
-            "_id": "6453a69309624a003fddf458",
-            "x": 1673020260000,
-            "title": 9,
-            "text": 'Some event with a description',
-            "ticker": "BSX",
-            "inside_news": {
-                "aaa": "aaa",
-                "bbb": "bbb"
-            },
-        },
-        {
-            "_id": "6453a69309624a003fddf459",
-            "x": 1673023860000,
-            "title": 10,
-            "text": 'Some event with a description',
-            "ticker": "BSX",
-            "inside_news": {
-                "aaa": "aaa",
-                "bbb": "bbb"
-            },
-        }
-    ])
+    
+    async function getStarthistorycal(){
+        fetch(intradayData).then(r=>r.json())
+            .then(result=>result.data)
+            .then(result=>{
+                setTickersData(result)
+                const datesArr=[]
+                result.forEach(oneResult=>{
+                    datesArr.push((oneResult.timestamp)*1000)
+                })
+                console.log(datesArr)
+                setTickersData(result)
+                setTestDates(datesArr);
+            })
+        
+    }
+    async function getStartForNews(){
+        fetch(urlForNews).then(r=>r.json()).then(result=>{
+            setRowNews(result.data)
+        })
+    }
+    
+   
     const options = {
         credits: {
             text: 'My Credits',
@@ -296,7 +211,7 @@ export default function TestChart() {
         series: [
             {
                 name: 'Data',
-                data: testData,
+                data: formattedData,
                 id: 'dateSeries',
 
                 cropThreshold: 1000000,
@@ -307,17 +222,25 @@ export default function TestChart() {
                 }
 
             }, {
+                name: 'News',
                 type: 'flags',
-                data: testFlags,
+                data: chartNews,
                 onSeries: 'dateSeries',
                 shape: 'squarepin',
-                width: 16,
-
+                accessibility: {
+                    exposeAsGroupOnly: true,
+                    description: 'Flagged events.'
+                },
                 events: {
                     click: function (event) {
                         console.log('here we have flag', event.point.options)
-                        const res=testParse(someTwitt);
-                        console.log('our twitt',res)
+                        setAuthor(event.point.options.creator)
+                        contentParser(event.point.options.content)
+                        setContentDialog(contentParser(event.point.options.content))
+                        setShowSent(event.point.options.sentiment)
+                        setTitleDialog(event.point.options.titleOfNews)
+                        setUrlOfNews(event.point.options.link)
+                        setOpenDialog(true)
                     }
                 }
 
@@ -329,11 +252,89 @@ export default function TestChart() {
             type: 'datetime',
         },
     };
+    
+
+    function formatNewsToFlags(newsArr,dates){
+        let i=-1;
+        const newFlags=newsArr.map(oneNews=>{
+            i++;
+            return({
+                x: dates[i],
+                title:oneNews.sentiment,
+                text:(oneNews.source,' : ', oneNews.title),
+                ticker:'BSX',
+                creator:oneNews.creator,
+                content:oneNews.content,
+                link:oneNews.link,
+                titleOfNews:oneNews.title,
+                sentiment:oneNews.sentiment
+            })
+        })
+        setChartNews(newFlags);
+    }
+
+    function formatIntradayForHighCharts(intraday){
+        const result=intraday.map(oneIntraday=>{
+            return ({
+                x:(oneIntraday.timestamp)*1000,
+                open:oneIntraday.open,
+                close:oneIntraday.close,
+                high:oneIntraday.high,
+                low:oneIntraday.low,
+                ticker:oneIntraday.ticker
+            })
+        })
+        setFormatedData(result)
+    }
+    
+    function contentParser(content){
+        const preResult=content.replace(/\n/g,' \n ').split('\n');
+        
+        console.log('pre-result',preResult)
+        const result=preResult.map(onePre=>{
+            const one=<p>{onePre}</p>;
+            return one;
+        })
+
+        return result;
+    }
+
+    useEffect(()=>{
+        getStarthistorycal();
+        getStartForNews();
+    },[])
+    
+    useEffect(()=>{
+        if((formattedData.length>0)&&(rowNews.length>0)&&(testDates.length>0)){
+            formatNewsToFlags(rowNews,testDates)
+        }
+        // console.log('rowNews',rowNews);
+        // console.log('formattedData',formattedData)
+        // console.log('testData',testDates)
+    },[formattedData,rowNews,testDates])
+    
+    useEffect(()=>{
+        console.log('our data',tickersData)
+        if(tickersData.length!==0){
+            (formatIntradayForHighCharts(tickersData))
+        }
+        
+    },[tickersData])
 
     return (
         <div>
-
-            <h1>Hi</h1>
+            <Dialog open={openDialog} onClose={(e)=>{setOpenDialog(false)}}>
+                <DialogTitle>{titleDialog}</DialogTitle>
+                <Stack direction='row'>
+                    {author}
+                    {' Sentiment: '}
+                    {showSent}
+                </Stack>
+                <a href={urlOfNews}>Tap to go news into source</a>
+                {contentDialog}
+                <Button variant='contained' onClick={()=>{setOpenDialog(false)}}>Close</Button>
+            </Dialog>
+            <h1>Hi! It's test page (now test news flags) </h1>
             <HighchartsReact
                 highcharts={Highcharts}
                 options={options} />
