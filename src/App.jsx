@@ -7,7 +7,7 @@ import Parser from './components/Parser.jsx'
 import OneChart from './components/OneChart.jsx';
 import { Stack } from '@mui/material';
 import TestChart from './components/TestChart.jsx'
-import WsTest from './components/WsTest.jsx'
+import WsRealTime from './components/WsRealTime.jsx'
 function App() {
 
   const [stateMenu, setStateMenu] = useState(false)
@@ -33,7 +33,7 @@ function App() {
       <OneChart />
     </Stack>
   </div>;
-  const wsTest=<div><WsTest/></div>
+  const wsTest=<div><WsRealTime/></div>
   const parser = <div><Parser /></div>
 
 

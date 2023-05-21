@@ -223,7 +223,7 @@ export default function Parser(){
         <Stack direction='Row'>
             <Stack direction='column' > 
                 <Stack direction='column' style={{margin:'10px'}}>
-                    <h4>Date of endpoint for parse</h4>
+                    <h4>Token for parse</h4>
                     <TextField 
                         variant='outlined' 
                         value={token} 
