@@ -7,7 +7,6 @@ import Parser from './components/Parser.jsx'
 import OneChart from './components/OneChart.jsx';
 import { Stack } from '@mui/material';
 import TestChart from './components/TestChart.jsx'
-import WsRealTime from './components/WsRealTime.jsx'
 import RealTimeFeeds from './components/RealTimeFeeds.jsx';
 function App() {
 
