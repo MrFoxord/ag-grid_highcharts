@@ -1,7 +1,7 @@
 import React from "react";
 import { useWebSocket } from "react-use-websocket/dist/lib/use-websocket";
 import {useState,useEffect} from 'react'
-import { Button,TextField,Stack,Collapse,Alert,IconButton } from "@mui/material";
+import { Button,TextField,Stack,Collapse,Alert,IconButton,InputLabel,Select,MenuItem } from "@mui/material";
 import AsyncSelect from 'react-select/async';
 
 import ForexChart from "./ForexChart.jsx";
@@ -17,6 +17,7 @@ export default function Forex(props){
     const [typeWarning,setTypeWarning]=useState('warning')
     const [textWarning,setTextWarning]=useState('Wait until service will connect ')
     const [textButton,setTextButton]=useState('choose ticker for reading')
+    const [typeChart,setTypeChart]=useState('both')
 
     const {sendJsonMessage}=useWebSocket(props.feed+props.token,{
         onOpen:()=>{
@@ -148,16 +149,40 @@ export default function Forex(props){
                 </Alert>
             </Collapse>
             <Stack direction='row' style={{marginLeft:'15px'}}>
-                
-                <TextField 
+                <div><InputLabel
+                        id='tickerId'>
+                    Write needed ticker
+                    </InputLabel>
+                <TextField
+                    labelId='tickerId' 
                     variant='outlined'
                     value={ticker}
-                    style={{maxWidth:'100px'}} 
+                    style={{maxWidth:'150px'}} 
                     onChange={(e)=>{setTicker(e.target.value)}}
                     />
+                </div>
+                <div style={{marginLeft:'15px'}}>
+                    <InputLabel
+                        id='selectId'>
+                    Choose needed datas
+                    </InputLabel>
+                    <Select 
+                        labelId='selectId'
+                        id='feedSelect'
+                        value={typeChart}
+                        onChange={(e)=>{setTypeChart(e.target.value)}}
+                        style={{width:'180px'}}>
+                        
+                            <MenuItem value={'both'}>Ask and Bid price</MenuItem>
+                            <MenuItem value={'ask'}>Ask price</MenuItem>
+                            <MenuItem value={'bid'}>Bid price</MenuItem>
+
+                        </Select>
+                </div>
+                
                 <Button onClick={()=>{realTimeSubscribe()}}  variant="contained" style={{marginLeft:'15px'}} >{textButton}</Button>
             </Stack>
-            <ForexChart data={dataArray} ticker={chartTicker}/>
+            <ForexChart data={dataArray} ticker={chartTicker} type={typeChart}/>
         </div>
     )
 }
