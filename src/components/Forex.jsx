@@ -4,7 +4,7 @@ import {useState,useEffect} from 'react'
 import { Button,TextField,Stack,Collapse,Alert,IconButton,InputLabel,Select,MenuItem } from "@mui/material";
 import AsyncSelect from 'react-select/async';
 
-import ForexChart from "./ForexChart.jsx";
+import UsQuotesChart from "./UsQuotesChart.jsx";
 
 export default function Forex(props){
 
@@ -130,7 +130,7 @@ export default function Forex(props){
 
     return (
         <div>
-            <h1>US-TRADES</h1>
+            <h1>FOREX</h1>
             <Collapse in={warning}>
                 <Alert
                   severity={typeWarning}
@@ -182,7 +182,7 @@ export default function Forex(props){
                 
                 <Button onClick={()=>{realTimeSubscribe()}}  variant="contained" style={{marginLeft:'15px'}} >{textButton}</Button>
             </Stack>
-            <ForexChart data={dataArray} ticker={chartTicker} type={typeChart}/>
+            <UsQuotesChart data={dataArray} ticker={chartTicker} type={typeChart}/>
         </div>
     )
 }
