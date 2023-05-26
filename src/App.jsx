@@ -8,6 +8,7 @@ import OneChart from './components/OneChart.jsx';
 import { Stack } from '@mui/material';
 import TestChart from './components/TestChart.jsx'
 import RealTimeFeeds from './components/RealTimeFeeds.jsx';
+import TestNews from './components/TestNews.jsx';
 function App() {
 
   const [stateMenu, setStateMenu] = useState(false)
@@ -35,9 +36,10 @@ function App() {
   </div>;
   const wsTest=<div><RealTimeFeeds/></div>
   const parser = <div><Parser /></div>
+  const news=<div><TestNews /></div>
 
 
-  const [content, setContent] = useState(wsTest)
+  const [content, setContent] = useState(news)
 
   const changeToTable = () => {
     if (content !== table) {
@@ -64,6 +66,11 @@ function App() {
   const changeToWsTest=()=>{
     if(content!==wsTest){
       setContent(wsTest)
+    }
+  }
+  const changeToNews=()=>{
+    if(content!==news){
+      setContent(news)
     }
   }
   useEffect(() => {
@@ -132,13 +139,21 @@ function App() {
             hideMenu();
           }} >Test</Button>
 
-<Button variant='text' size="large"
+          <Button variant='text' size="large"
           edge="start"
           color="inherit"
           style={{ marginTop: '20px' }} onClick={() => {
             changeToWsTest();
             hideMenu();
           }} >WebSocket</Button>
+
+          <Button variant='text' size="large"
+          edge="start"
+          color="inherit"
+          style={{ marginTop: '20px' }} onClick={() => {
+            changeToNews();
+            hideMenu();
+          }} >TestNews</Button>
           
       </Drawer>
 
